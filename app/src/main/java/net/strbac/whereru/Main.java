@@ -1,6 +1,5 @@
 package net.strbac.whereru;
 
-
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
@@ -61,15 +60,12 @@ public class Main extends Activity implements LocationListener {
             public void onClick(View v) {
 
                 try {
-                    String phoneNo = "14083344388";
+                    String phoneNo = "14083344288";
 
-                    StringBuffer smsBody = new StringBuffer();
+                    StringBuilder smsBody = new StringBuilder();
                     smsBody.append(Uri.parse(getURI()));
-                    Intent sendIntent = new Intent(Intent.ACTION_VIEW);
-                    sendIntent.putExtra("sms_body", smsBody.toString());
-                    sendIntent.setType("vnd.android-dir/mms-sms");
-                    startActivity(sendIntent);
-
+                    SmsManager mgr = SmsManager.getDefault();
+                    mgr.sendTextMessage(phoneNo, null, smsBody.toString(), null, null);
                 } catch (Exception e) {
                     Toast.makeText(getApplicationContext(),
                             "SMS failed, please try again later!",
@@ -84,17 +80,17 @@ public class Main extends Activity implements LocationListener {
 
 
     public String getURI() {
-        Location location = null;
+        Location location;
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         try {
-            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                    0, 0, this);
+                location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            } else if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                         0, 0, this);
                 location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                        0, 0, this);
-                location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             } else {
                 Toast.makeText(getApplicationContext(),
                         "Location in onCreate is NULL",
