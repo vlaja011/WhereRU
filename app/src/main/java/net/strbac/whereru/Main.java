@@ -1,10 +1,10 @@
 package net.strbac.whereru;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -18,26 +18,43 @@ import android.widget.Toast;
 
 public class Main extends Activity implements LocationListener {
 
+    private static Main instance;
     private String provider;
+    private String callersNumber;
     protected LocationManager locationManager;
     protected LocationListener locationListener;
+    Button reqButton;
+    Button respButton;
+    public static String whereruString = "WhereRU?!";
+    public static String uriString = "https://maps.google.com/maps/@";
+
+    public static Main instance() {
+        return instance;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        instance = this;
+    }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        Button reqB = (Button) findViewById(R.id.reqButton);
+        reqButton = (Button) findViewById(R.id.reqButton);
 
-        reqB.setOnClickListener(new OnClickListener() {
+        reqButton.setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View v) {
 
                 try {
-                    String smsBody = "Whare are you?";
                     Intent sendIntent = new Intent(Intent.ACTION_VIEW);
-                    sendIntent.putExtra("sms_body", smsBody);
+                    sendIntent.putExtra("sms_body", whereruString);
                     sendIntent.setType("vnd.android-dir/mms-sms");
                     startActivity(sendIntent);
 
@@ -50,22 +67,27 @@ public class Main extends Activity implements LocationListener {
             }
         });
 
-//        MessageChecker mc = new MessageChecker();
 
-        Button respB = (Button) findViewById(R.id.respButton);
+        respButton = (Button) findViewById(R.id.respButton);
+        respButton.setEnabled(false);
 
-        respB.setOnClickListener(new OnClickListener() {
+        respButton.setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View v) {
 
                 try {
-                    String phoneNo = "14083344288";
+                    String phoneNo = getCallersNumber();
+                    if (phoneNo == null) {
+                        respButton.setText("UNKNOWN CALLER");
+                        return;
+                    }
 
                     StringBuilder smsBody = new StringBuilder();
                     smsBody.append(Uri.parse(getURI()));
                     SmsManager mgr = SmsManager.getDefault();
                     mgr.sendTextMessage(phoneNo, null, smsBody.toString(), null, null);
+                    setResponseButtonColor(Color.GREEN);
                 } catch (Exception e) {
                     Toast.makeText(getApplicationContext(),
                             "SMS failed, please try again later!",
@@ -78,6 +100,12 @@ public class Main extends Activity implements LocationListener {
 
     }
 
+    public void setResponseButtonColor(int color) {
+        if (!respButton.isEnabled()) {
+            respButton.setEnabled(true);
+        }
+        respButton.setBackgroundColor(color);
+    }
 
     public String getURI() {
         Location location;
@@ -98,7 +126,8 @@ public class Main extends Activity implements LocationListener {
                 return null;
             }
 
-            return "https://maps.google.com/maps/@" + location.getLatitude() + "," + location.getLongitude();
+            String retString = uriString + location.getLatitude() + "," + location.getLongitude();
+            return retString;
 
         } catch (SecurityException e) {
             e.printStackTrace();
@@ -107,6 +136,25 @@ public class Main extends Activity implements LocationListener {
         return null;
     }
 
+
+    public void showMap(String uri) {
+        String coordinates = "geo:" + uri.replaceFirst(uriString, "");
+        Uri gmmIntentUri = Uri.parse(coordinates);
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+        mapIntent.setPackage("com.google.android.apps.maps");
+        if (mapIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(mapIntent);
+        }
+    }
+
+
+    public void setCallersNumber(String cn) {
+        callersNumber = cn;
+    }
+
+    public String getCallersNumber() {
+        return callersNumber;
+    }
 
     public void onLocationChanged(Location location) {
 
