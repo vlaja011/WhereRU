@@ -1,5 +1,7 @@
 package net.strbac.whereru;
 
+import android.content.ContentResolver;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.app.Activity;
@@ -9,6 +11,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.provider.ContactsContract;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
@@ -19,13 +22,14 @@ import android.widget.Toast;
 public class Main extends Activity implements LocationListener {
 
     private static Main instance;
-    private String provider;
-    private String callersNumber;
+//    private String provider;
+    private String callerNumber;
+    private String callerName;
     protected LocationManager locationManager;
-    protected LocationListener locationListener;
+//    protected LocationListener locationListener;
     Button reqButton;
     Button respButton;
-    public static String whereruString = "WhereRU?!";
+    public static String whereruString = "whereru";
     public static String uriString = "https://maps.google.com/maps/@";
 
     public static Main instance() {
@@ -77,20 +81,21 @@ public class Main extends Activity implements LocationListener {
             public void onClick(View v) {
 
                 try {
-                    String phoneNo = getCallersNumber();
+                    String phoneNo = getCallerNumber();
                     if (phoneNo == null) {
                         respButton.setText("UNKNOWN CALLER");
                         return;
                     }
 
-                    StringBuilder smsBody = new StringBuilder();
-                    smsBody.append(Uri.parse(getURI()));
+                    StringBuilder uri = new StringBuilder();
+                    uri.append(Uri.parse(getURI()));
                     SmsManager mgr = SmsManager.getDefault();
-                    mgr.sendTextMessage(phoneNo, null, smsBody.toString(), null, null);
+                    mgr.sendTextMessage(phoneNo, null, uri.toString(), null, null);
                     setResponseButtonColor(Color.GREEN);
+                    respButton.setEnabled(false);
                 } catch (Exception e) {
                     Toast.makeText(getApplicationContext(),
-                            "SMS failed, please try again later!",
+                            "Failed to send location!",
                             Toast.LENGTH_LONG).show();
                     e.printStackTrace();
                 }
@@ -100,6 +105,11 @@ public class Main extends Activity implements LocationListener {
 
     }
 
+    public void setResponseButtonText(String callerName) {
+        respButton.setText(callerName + " IS ASKING WHERE YOU ARE. CLICK HERE!");
+    }
+
+
     public void setResponseButtonColor(int color) {
         if (!respButton.isEnabled()) {
             respButton.setEnabled(true);
@@ -108,30 +118,25 @@ public class Main extends Activity implements LocationListener {
     }
 
     public String getURI() {
-        Location location;
+        Location location = null;
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         try {
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                    0, 0, this);
+                        0, 0, this);
                 location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             } else if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                         0, 0, this);
                 location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            } else {
-                Toast.makeText(getApplicationContext(),
-                        "Location in onCreate is NULL",
-                        Toast.LENGTH_LONG).show();
-                return null;
             }
 
-            String retString = uriString + location.getLatitude() + "," + location.getLongitude();
-            return retString;
+            return uriString + location.getLatitude() + "," + location.getLongitude();
 
+        } catch (NullPointerException npe) {
+              npe.printStackTrace();
         } catch (SecurityException e) {
             e.printStackTrace();
-            //dialogGPS(this.getContext()); // lets the user know there is a problem with the gps
         }
         return null;
     }
@@ -148,12 +153,12 @@ public class Main extends Activity implements LocationListener {
     }
 
 
-    public void setCallersNumber(String cn) {
-        callersNumber = cn;
+    public void setCallerNumber(String cn) {
+        callerNumber = cn;
     }
 
-    public String getCallersNumber() {
-        return callersNumber;
+    public String getCallerNumber() {
+        return callerNumber;
     }
 
     public void onLocationChanged(Location location) {
@@ -169,8 +174,6 @@ public class Main extends Activity implements LocationListener {
         Log.d("Latitude", "enable");
     }
 
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-        Log.d("Latitude", "status");
-    }
+    public void onStatusChanged(String provider, int status, Bundle extras) { Log.d("Latitude", "status"); }
 
 }
