@@ -16,6 +16,9 @@ import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -83,7 +86,7 @@ public class Main extends Activity implements LocationListener {
                 try {
                     String phoneNo = getCallerNumber();
                     if (phoneNo == null) {
-                        respButton.setText("UNKNOWN CALLER");
+                        setResponseButtonText("UNKNOWN CALLER");
                         return;
                     }
 
@@ -91,11 +94,12 @@ public class Main extends Activity implements LocationListener {
                     uri.append(Uri.parse(getURI()));
                     SmsManager mgr = SmsManager.getDefault();
                     mgr.sendTextMessage(phoneNo, null, uri.toString(), null, null);
+                    setResponseButtonText("YOUR CURRENT LOCATION SENT TO " + callerName);
                     setResponseButtonColor(Color.GREEN);
                     respButton.setEnabled(false);
                 } catch (Exception e) {
                     Toast.makeText(getApplicationContext(),
-                            "Failed to send location!",
+                            "Failed to send location. Try again later.",
                             Toast.LENGTH_LONG).show();
                     e.printStackTrace();
                 }
@@ -105,8 +109,8 @@ public class Main extends Activity implements LocationListener {
 
     }
 
-    public void setResponseButtonText(String callerName) {
-        respButton.setText(callerName + " IS ASKING WHERE YOU ARE. CLICK HERE!");
+    public void setResponseButtonText(String text) {
+        respButton.setText(text);
     }
 
 
@@ -116,6 +120,19 @@ public class Main extends Activity implements LocationListener {
         }
         respButton.setBackgroundColor(color);
     }
+
+
+    public void buttonBlink(Button button) {
+        setContentView(R.layout.main);
+
+        Animation mAnimation = new AlphaAnimation(1, 0);
+        mAnimation.setDuration(300);
+        mAnimation.setInterpolator(new LinearInterpolator());
+        mAnimation.setRepeatCount(3);
+        mAnimation.setRepeatMode(Animation.REVERSE);
+        button.startAnimation(mAnimation);
+    }
+
 
     public String getURI() {
         Location location = null;

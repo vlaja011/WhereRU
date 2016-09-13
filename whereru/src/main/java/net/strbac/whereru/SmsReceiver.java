@@ -31,8 +31,9 @@ public class SmsReceiver extends BroadcastReceiver {
                     String callerNumber = smsMessage.getOriginatingAddress();
                     String callerName = getCallerName(context, callerNumber);
                     mainInstance.setCallerNumber(callerNumber);
-                    mainInstance.setResponseButtonText(callerName);
+                    mainInstance.setResponseButtonText(callerName + " IS ASKING WHERE YOU ARE. CLICK HERE!");
                     mainInstance.setResponseButtonColor(Color.RED);
+                    mainInstance.buttonBlink(mainInstance.respButton);
                 } else if (smsBody.startsWith(Main.uriString)) {
                     mainInstance.showMap(smsBody);
                 }
