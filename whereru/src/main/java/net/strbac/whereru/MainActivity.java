@@ -1,7 +1,7 @@
 package net.strbac.whereru;
 
-import android.content.ContentResolver;
-import android.database.Cursor;
+import android.content.ComponentName;
+import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.app.Activity;
@@ -11,7 +11,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.provider.ContactsContract;
+import android.os.IBinder;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
@@ -22,20 +22,19 @@ import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class Main extends Activity implements LocationListener {
+public class MainActivity extends Activity implements LocationListener {
 
-    private static Main instance;
-//    private String provider;
+    private WhereRUService service;
+    private static MainActivity instance;
     private String callerNumber;
     private String callerName;
     protected LocationManager locationManager;
-//    protected LocationListener locationListener;
     Button reqButton;
     Button respButton;
     public static String whereruString = "whereru";
     public static String uriString = "https://maps.google.com/maps/@";
 
-    public static Main instance() {
+    public static MainActivity instance() {
         return instance;
     }
 
@@ -94,7 +93,7 @@ public class Main extends Activity implements LocationListener {
                     uri.append(Uri.parse(getURI()));
                     SmsManager mgr = SmsManager.getDefault();
                     mgr.sendTextMessage(phoneNo, null, uri.toString(), null, null);
-                    setResponseButtonText("YOUR CURRENT LOCATION SENT TO " + callerName);
+                    setResponseButtonText("LOCATION SENT");
                     setResponseButtonColor(Color.GREEN);
                     respButton.setEnabled(false);
                 } catch (Exception e) {
@@ -178,9 +177,35 @@ public class Main extends Activity implements LocationListener {
         return callerNumber;
     }
 
-    public void onLocationChanged(Location location) {
+    public void onLocationChanged(Location location) {  }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent intent= new Intent(this, WhereRUService.class);
+        bindService(intent, mConnection,
+                Context.BIND_AUTO_CREATE);
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unbindService(mConnection);
+    }
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        public void onServiceConnected(ComponentName className,
+                                       IBinder binder) {
+            WhereRUService.WRUBinder b = (WhereRUService.WRUBinder) binder;
+            service = b.getService();
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            service = null;
+        }
+    };
 
 
     public void onProviderDisabled(String provider) {
