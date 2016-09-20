@@ -169,12 +169,33 @@ public class MainActivity extends Activity implements LocationListener {
     }
 
 
+    /**
+     *
+     * @param smsString
+     * @return
+     * TODO remove "where"
+     */
+    public boolean matches(String smsString) {
+        String s = smsString.toLowerCase().trim();
+        if (s.equals(whereruString) || s.equals("w") || s.startsWith("where"))
+            return true;
+        return false;
+    }
+
     public void setCallerNumber(String cn) {
         callerNumber = cn;
     }
 
     public String getCallerNumber() {
         return callerNumber;
+    }
+
+
+    public void bringToFront() {
+        Intent i = new Intent(getBaseContext(), MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(i);
+
     }
 
     public void onLocationChanged(Location location) {  }
@@ -209,13 +230,12 @@ public class MainActivity extends Activity implements LocationListener {
 
 
     public void onProviderDisabled(String provider) {
-        Log.d("Latitude", "disable");
     }
 
     public void onProviderEnabled(String provider) {
-        Log.d("Latitude", "enable");
     }
 
-    public void onStatusChanged(String provider, int status, Bundle extras) { Log.d("Latitude", "status"); }
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+    }
 
 }
