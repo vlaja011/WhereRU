@@ -16,33 +16,37 @@ public class SmsReceiver extends BroadcastReceiver {
 
     public static final String SMS_BUNDLE = "pdus";
 
-
+//    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     public void onReceive(Context context, Intent intent) {
         //start service upon phone boot
-//        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
-//            Intent serviceIntent = new Intent(context, WhereRUService.class);
-//            context.startService(serviceIntent);
-//        }
-        Bundle intentExtras = intent.getExtras();
-        if (intentExtras != null) {
-            Object[] sms = (Object[]) intentExtras.get(SMS_BUNDLE);
-            MainActivity mainInstance = MainActivity.instance();
-            for (int i = 0; i < sms.length; ++i) {
-                SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) sms[i]);
-                String smsBody = smsMessage.getMessageBody();
-                if (mainInstance.matches(smsBody)) {
-                    mainInstance.bringToFront();
-                    String callerNumber = smsMessage.getOriginatingAddress();
-                    String callerName = getCallerName(context, callerNumber);
-                    mainInstance.setCallerNumber(callerNumber);
-                    mainInstance.setResponseButtonText(callerName + " IS ASKING WHERE YOU ARE!");
-                    mainInstance.setResponseButtonColor(Color.RED);
-                } else if (smsBody.startsWith(MainActivity.uriString)) {
-                    mainInstance.showMap(smsBody);
+        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
+            Intent launchIntent = new Intent(context, MainActivity.class);
+//            launchIntent.addCategory(Intent.CATEGORY_HOME);
+            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(launchIntent);
+//            moveTaskToBack(true);
+        } else {
+            Bundle intentExtras = intent.getExtras();
+            if (intentExtras != null) {
+                Object[] sms = (Object[]) intentExtras.get(SMS_BUNDLE);
+                MainActivity mainInstance = MainActivity.instance();
+                for (int i = 0; i < sms.length; ++i) {
+                    SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) sms[i]);
+                    String smsBody = smsMessage.getMessageBody();
+                    if (mainInstance.matches(smsBody)) {
+                        mainInstance.bringToFront();
+                        String callerNumber = smsMessage.getOriginatingAddress();
+                        String callerName = getCallerName(context, callerNumber);
+                        mainInstance.setCallerNumber(callerNumber);
+                        mainInstance.setResponseButtonText(callerName + " IS ASKING WHERE YOU ARE!");
+                        mainInstance.setResponseButtonColor(Color.GREEN);
+                    } else if (smsBody.startsWith(MainActivity.uriString)) {
+                        mainInstance.showMap(smsBody);
+                    }
                 }
-            }
 
+            }
         }
     }
 

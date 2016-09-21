@@ -52,6 +52,7 @@ public class MainActivity extends Activity implements LocationListener {
         setContentView(R.layout.main);
 
         reqButton = (Button) findViewById(R.id.reqButton);
+        reqButton.setBackgroundColor(Color.GREEN);
 
         reqButton.setOnClickListener(new OnClickListener() {
 
@@ -94,7 +95,7 @@ public class MainActivity extends Activity implements LocationListener {
                     SmsManager mgr = SmsManager.getDefault();
                     mgr.sendTextMessage(phoneNo, null, uri.toString(), null, null);
                     setResponseButtonText("LOCATION SENT");
-                    setResponseButtonColor(Color.GREEN);
+                    setResponseButtonColor(Color.LTGRAY);
                     respButton.setEnabled(false);
                 } catch (Exception e) {
                     Toast.makeText(getApplicationContext(),
@@ -190,7 +191,9 @@ public class MainActivity extends Activity implements LocationListener {
         return callerNumber;
     }
 
-
+    /**
+     * TODO bring to front even if another app is open and visible
+     */
     public void bringToFront() {
         Intent i = new Intent(getBaseContext(), MainActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
