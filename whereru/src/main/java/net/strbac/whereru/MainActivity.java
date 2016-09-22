@@ -207,16 +207,13 @@ public class MainActivity extends Activity implements LocationListener {
     @Override
     protected void onResume() {
         super.onResume();
-        Intent intent= new Intent(this, WhereRUService.class);
-        bindService(intent, mConnection,
-                Context.BIND_AUTO_CREATE);
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unbindService(mConnection);
-    }
+     }
 
     private ServiceConnection mConnection = new ServiceConnection() {
 
