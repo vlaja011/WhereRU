@@ -16,15 +16,13 @@ public class SmsReceiver extends BroadcastReceiver {
 
     public static final String SMS_BUNDLE = "pdus";
 
-//    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
+    @Override
     public void onReceive(Context context, Intent intent) {
-        //start service upon phone boot
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
             Intent launchIntent = new Intent(context, MainActivity.class);
-//            launchIntent.addCategory(Intent.CATEGORY_HOME);
             launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(launchIntent);
+//            launchIntent.addCategory(Intent.CATEGORY_HOME);
 //            moveTaskToBack(true);
         } else {
             Bundle intentExtras = intent.getExtras();
