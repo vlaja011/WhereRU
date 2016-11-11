@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.telephony.SmsMessage;
+import android.widget.Toast;
 
 
 public class SmsReceiver extends BroadcastReceiver {
@@ -25,25 +26,34 @@ public class SmsReceiver extends BroadcastReceiver {
 //            launchIntent.addCategory(Intent.CATEGORY_HOME);
 //            moveTaskToBack(true);
         } else {
-            Bundle intentExtras = intent.getExtras();
-            if (intentExtras != null) {
-                Object[] sms = (Object[]) intentExtras.get(SMS_BUNDLE);
-                MainActivity mainInstance = MainActivity.instance();
-                for (int i = 0; i < sms.length; ++i) {
-                    SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) sms[i]);
-                    String smsBody = smsMessage.getMessageBody();
-                    if (mainInstance.matches(smsBody)) {
-                        mainInstance.bringToFront();
-                        String callerNumber = smsMessage.getOriginatingAddress();
-                        String callerName = getCallerName(context, callerNumber);
-                        mainInstance.setCallerNumber(callerNumber);
-                        mainInstance.setResponseButtonText(callerName + " IS ASKING WHERE YOU ARE!");
-                        mainInstance.setResponseButtonColor(Color.GREEN);
-                    } else if (smsBody.startsWith(MainActivity.uriString)) {
-                        mainInstance.showMap(smsBody);
+            try {
+                Bundle intentExtras = intent.getExtras();
+                if (intentExtras != null && intentExtras.get(SMS_BUNDLE) != null) {
+                    Object[] sms = (Object[]) intentExtras.get(SMS_BUNDLE);
+                    MainActivity mainInstance = MainActivity.instance();
+                    for (int i = 0; i < sms.length; ++i) {
+                        SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) sms[i]);
+                        String smsBody = smsMessage.getMessageBody();
+                        if (mainInstance.matches(smsBody)) {
+                            mainInstance.bringToFront();
+                            String callerNumber = smsMessage.getOriginatingAddress();
+                            String callerName = getCallerName(context, callerNumber);
+                            mainInstance.setCallerNumber(callerNumber);
+                            mainInstance.setResponseButtonText(callerName + "\nis asking where you are!");
+                            mainInstance.setResponseButtonColor(Color.GREEN);
+                        } else if (smsBody.startsWith(MainActivity.uriString)) {
+                            mainInstance.showMap(smsBody);
+                        } else {
+                            //ignore other messages
+                        }
                     }
-                }
 
+                }
+            } catch (Exception e) {
+                Toast.makeText(context,
+                        "Internal error :(",
+                        Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
             }
         }
     }
@@ -56,11 +66,11 @@ public class SmsReceiver extends BroadcastReceiver {
             return null;
         }
         String contactName = null;
-        if(cursor.moveToFirst()) {
+        if (cursor.moveToFirst()) {
             contactName = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
         }
 
-        if(!cursor.isClosed()) {
+        if (!cursor.isClosed()) {
             cursor.close();
         }
 
